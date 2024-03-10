@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react'; // Correctly import useEffect from react
+import { useDispatch } from 'react-redux'; // Ensure useDispatch is imported from react-redux
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
@@ -12,9 +13,18 @@ import ProfessionalSelection from './components/ProfessionalSelection';
 import TimeSelection from './components/TimeSelection';
 import Logout from './components/LogOut';
 import Profile from './components/Profile';
-
+import { login } from './features/auth/authslice'; // Ensure this path is correct
 // The app component is the main component of the app. It contains all the routes and the logo
+
 const App = () => {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      dispatch(login(token));
+    }
+  }, [dispatch]);
+
   return (
     <Router>
       <div>
@@ -28,7 +38,7 @@ const App = () => {
           <Route path="/reservation" element={<ReservationForm />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registration />} />
-          <Route path="/admin" element={<Adminpanel />} />
+          <Route path="/admin/*" element={<Adminpanel />} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>

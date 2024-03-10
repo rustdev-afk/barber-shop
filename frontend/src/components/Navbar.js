@@ -1,9 +1,19 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { getAuthToken } from '../utils/auth';
+import { Link, useNavigate } from 'react-router-dom'; // Add useNavigate import
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../features/auth/authslice';
 
 const Navbar = () => {
-  const isLoggedIn = !!getAuthToken();
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+  const userStatus = useSelector((state) => state.auth.userStatus); // Assuming you have userStatus in your Redux store
+  const dispatch = useDispatch();
+  const navigate = useNavigate(); // Add useNavigate hook
+
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem('token');
+    navigate('/'); // Navigate to the home page after logout
+  };
 
   return (
     <nav>
@@ -28,9 +38,14 @@ const Navbar = () => {
           <>
             <li>
               <Link to="/profile">Profile</Link>
-            </li>
+              </li>
+            {(userStatus === 2 || userStatus === 3) && (
+              <li>
+                <Link to="/admin">Admin Menu</Link>
+              </li>
+              )}
             <li>
-              <Link to="/logout">Logout</Link>
+              <button onClick={handleLogout}>Logout</button>
             </li>
           </>
         )}

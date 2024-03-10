@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { setAuthToken, setAuthUsername } from '../utils/auth';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { login } from '../features/auth/authslice'; // Adjust this path as necessary
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -12,10 +16,15 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:5000/api/auth/login', { username, password });
       const token = response.data.token;
-      setAuthToken(token);
-      setAuthUsername(username);
+      const userStatus = response.data.userStatus; // Assuming the server sends the user status in the response
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('userStatus', userStatus); // Store userStatus in local storage
+      localStorage.setItem('username', username); // Store the username in local storage
+      dispatch(login({ token, userStatus })); // Dispatch the login action with token and userStatus
+
       console.log('Login successful');
-      // Redirect to a logged-in page or update the UI accordingly
+      navigate('/');
     } catch (error) {
       console.error('Login failed:', error.response.data.error);
     }

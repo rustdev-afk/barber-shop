@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Reservation = require('../models/Reservation');
+const authMiddleware = require('../middleware/auth');
+const Barbershop = require('../models/Barbershop');
 
 // GET all reservations
 router.get('/', async (req, res) => {
@@ -58,3 +60,21 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.get('/admin', authMiddleware, async (req, res) => {
+  try {
+    const adminUsername = req.user.username;
+
+    // Find the barbershops managed by the admin
+    const barbershops = await Barbershop.find({ adminUsername });
+
+    // Extract the barbershop IDs
+    const barbershopIds = barbershops.map((barbershop) => barbershop._id);
+
+    // Find the bookings for the admin's managed barbershops
+    const bookings = await Reservation.find({ barbershop: { $in: barbershopIds } });
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});

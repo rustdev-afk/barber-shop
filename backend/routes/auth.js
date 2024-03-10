@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const authMiddleware = require('../middleware/auth');
 
 // User registration route
 router.post('/register', async (req, res) => {
@@ -38,7 +39,6 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Find the user by username
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ error: 'Invalid username or password' });
@@ -51,8 +51,24 @@ router.post('/login', async (req, res) => {
 
     // Generate a JWT token
     const token = jwt.sign({ userId: user._id, username: user.username }, process.env.JWT_SECRET);
+    return res.json({ token, userStatus: user.status }); 
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' }); 
+  }
+});
 
-    res.json({ token });
+// Get bookings by username
+router.get('/user/:username', authMiddleware, async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (req.user.username !== username) {
+      return res.status(403).json({ error: 'Access denied. You can only view your own bookings.' });
+    }
+
+    const bookings = await Reservation.find({ username });
+
+    res.json(bookings);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }

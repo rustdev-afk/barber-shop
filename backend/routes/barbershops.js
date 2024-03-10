@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Barbershop = require('../models/Barbershop');
+const authMiddleware = require('../middleware/auth');
+
 
 // GET all barbershops
 router.get('/', async (req, res) => {
@@ -39,14 +41,21 @@ router.get('/:id/professionals', async (req, res) => {
 });
 
 // POST a new barbershop
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { name, street, professionals } = req.body;
+    const { name, street, professionals, adminUsername  } = req.body;
+
+    if (req.user.status == 1) {
+      return res.status(403).json({ error: 'Access denied. You do not have permission to perform this action.' });
+    }
+
     const barbershop = new Barbershop({
       name,
       street,
       professionals,
+      adminUsername,
     });
+
     await barbershop.save();
     res.status(201).json(barbershop);
   } catch (error) {
